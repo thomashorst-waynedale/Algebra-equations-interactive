@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ohio Algebra 1 - Kinetic Skill Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Playpen+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate: #1e293b;
+            --mint: #059669;
+            --crimson: #dc2626;
+            --royal: #2563eb;
+            --parchment: #fdfdfb;
+            --grid-dot: #cbd5e1;
+            --bg: #f1f5f9;
+            --card-border: #1e293b;
+            --board-bg: #1e293b;
+            --board-grid: #334155;
+            --board-text: #f8fafc;
+            --hover-bg: #e2e8f0;
+            
+            /* Node Difficulty Colors */
+            --node-support: #3b82f6; /* Blue */
+            --node-fluency: #10b981; /* Green */
+            --node-rigor: #8b5cf6;   /* Purple */
+        }
+
+        .dark-mode {
+            --slate: #f8fafc;
+            --mint: #34d399;
+            --crimson: #f87171;
+            --royal: #60a5fa;
+            --parchment: #0f172a;
+            --grid-dot: #334155;
+            --bg: #020617;
+            --card-border: #475569;
+            --board-bg: #0b0f19;
+            --board-grid: #1e293b;
+            --hover-bg: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Playpen Sans', cursive, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            min-height: 100vh;
+            box-sizing: border-box;
+            color: var(--slate);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header h1 {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 2.5rem;
+            margin: 0 0 5px 0;
+        }
+
+        header p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .layout-container {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 950px) {
+            .layout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar {
+            background-color: var(--parchment);
+            background-image: radial-gradient(var(--grid-dot) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+            border: 4px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 6px 6px 0 rgba(30, 41, 59, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 3px dashed var(--slate);
+            background: var(--parchment);
+            z-index: 2;
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Permanent Marker', cursive;
+            margin: 0;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .web-legend {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--slate); }
+
+        .web-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            height: 700px;
+        }
+
+        .web-svg {
+            width: 100%;
+            height: 1050px; 
+            display: block;
+        }
+
+        .web-link {
+            stroke: var(--slate);
+            stroke-width: 3;
+            stroke-dasharray: 6;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        .web-node-group {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .web-node-group:hover {
+            transform: scale(1.05);
+        }
+        .web-node-group:hover .web-link {
+            opacity: 1;
+        }
+        .web-node {
+            stroke: var(--slate);
+            stroke-width: 3;
+            transition: all 0.2s ease;
+        }
+        .web-node-group.active .web-node {
+            stroke: var(--parchment);
+            stroke-width: 5;
+            filter: drop-shadow(0px 0px 8px var(--slate));
+        }
+        .web-node-label {
+            font-family: 'Playpen Sans', cursive;
+            font-weight: bold;
+            font-size: 14px;
+            fill: var(--slate);
+            text-anchor: middle;
+            pointer-events: none;
+            background: rgba(255,255,255,0.8);
+        }
+        .web-node-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 14px;
+            fill: var(--slate);
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .whiteboard-card {
+            background-color: var(--parchment);
+            background-image: radial-gradient(var(--grid-dot) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            border: 4px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 8px 8px 0 rgba(30, 41, 59, 0.1);
+            padding: 25px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .whiteboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px dashed var(--slate);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .whiteboard-title { font-family: 'Permanent Marker', cursive; font-size: 1.5rem; margin: 0; }
+        .whiteboard-std { background-color: var(--slate); color: var(--bg); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
+
+        .canvas-container {
+            background-color: var(--board-bg);
+            border-radius: 12px;
+            border: 3px solid var(--slate);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 400px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(var(--board-grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .interactive-svg { width: 100%; height: 100%; z-index: 10; }
+
+        .controls-card {
+            background-color: var(--parchment);
+            border: 4px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 6px 6px 0 rgba(30, 41, 59, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .slider-row { display: flex; align-items: center; gap: 15px; width: 100%; }
+
+        .play-btn {
+            background-color: var(--mint);
+            color: white;
+            border: 3px solid var(--card-border);
+            border-radius: 12px;
+            width: 54px;
+            height: 54px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 var(--card-border);
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn:active { transform: translate(3px, 3px); box-shadow: 0px 0px 0 var(--card-border); }
+
+        .slider-wrapper { flex-grow: 1; position: relative; padding: 10px 0; }
+
+        .scrub-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            background: #cbd5e1;
+            outline: none;
+            border: 3px solid var(--slate);
+            cursor: pointer;
+        }
+
+        .scrub-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 3px solid var(--slate);
+            cursor: pointer;
+            box-shadow: 0px 4px 0px var(--slate);
+            transition: transform 0.1s ease;
+        }
+        .scrub-slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        .step-indicators { display: flex; justify-content: space-between; width: 100%; padding: 0 10px; box-sizing: border-box; }
+        .step-label { font-family: 'Permanent Marker', cursive; font-size: 0.95rem; color: #64748b; text-align: center; flex: 1; transition: color 0.2s ease, transform 0.2s ease; }
+        .step-label.active { color: var(--mint); transform: scale(1.1); }
+
+        .live-explanation {
+            background-color: rgba(37, 99, 235, 0.05);
+            border-left: 5px solid var(--royal);
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 0 8px 8px 0;
+            color: var(--slate);
+            font-weight: bold;
+            line-height: 1.5;
+            min-height: 50px;
+        }
+
+        .top-utilities { display: flex; gap: 15px; margin-bottom: 25px; }
+
+        .util-btn {
+            padding: 8px 16px;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid var(--card-border);
+            background-color: var(--parchment);
+            color: var(--slate);
+            box-shadow: 3px 3px 0 var(--slate);
+            transition: all 0.1s ease;
+        }
+
+        .util-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0 var(--slate); }
+
+        .svg-board-text { font-family: 'Playpen Sans', cursive; font-weight: bold; font-size: 34px; fill: var(--board-text); text-anchor: middle; dominant-baseline: middle; }
+        .svg-marker-text { font-family: 'Permanent Marker', cursive; font-size: 28px; fill: var(--mint); text-anchor: middle; dominant-baseline: middle; }
+    </style>
+</head>
+<body>
+
+    <header class="header-controls">
+        <h1>Algebra 1 Progression Web</h1>
+        <p>Explore the map. Numbers generate dynamically every time you click a node!</p>
+    </header>
+
+    <div class="top-utilities">
+        <button class="util-btn" onclick="toggleDarkMode()">🌓 Toggle System Theme</button>
+        <button class="util-btn" onclick="regenerateCurrentNode()">🎲 Generate New Numbers</button>
+    </div>
+
+    <div class="layout-container">
+        <!-- Interactive Web Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Knowledge Web</h2>
+                <div class="web-legend">
+                    <div class="legend-item"><div class="dot" style="background: var(--node-support)"></div> Foundations</div>
+                    <div class="legend-item"><div class="dot" style="background: var(--node-fluency)"></div> Fluency</div>
+                    <div class="legend-item"><div class="dot" style="background: var(--node-rigor)"></div> Rigor</div>
+                </div>
+            </div>
+            <div class="web-container" id="web-container">
+                <svg class="web-svg" id="web-svg" viewBox="0 0 400 1050">
+                    <!-- Lines and Nodes injected via JS -->
+                </svg>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            <div class="whiteboard-card">
+                <div class="whiteboard-header">
+                    <h2 class="whiteboard-title" id="stage-title">Select a node from the map...</h2>
+                    <span class="whiteboard-std" id="stage-module">Loading...</span>
+                </div>
+
+                <div class="canvas-container">
+                    <svg class="interactive-svg" id="math-svg" viewBox="0 0 800 400">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+                            </marker>
+                            <marker id="arrow-crimson" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#f87171" />
+                            </marker>
+                        </defs>
+                        <!-- Dynamic Math SVG injected here -->
+                    </svg>
+                </div>
+            </div>
+
+            <div class="controls-card">
+                <div class="slider-row">
+                    <button class="play-btn" id="play-trigger" onclick="togglePlay()">▶</button>
+                    <div class="slider-wrapper">
+                        <input type="range" class="scrub-slider" id="scrubber" min="0" max="1" step="0.01" value="0" oninput="scrubUpdate()">
+                    </div>
+                </div>
+                <div class="step-indicators" id="step-indicators"></div>
+                <div class="live-explanation" id="explanation-text">
+                    Click a node on the left to begin.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const getP = (t, step) => Math.max(0, Math.min(1, t - step));
+        const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        
+        let activeParams = null; // Stores the randomly generated numbers for the active node
+
+        // --- RIGOROUS MATH RENDER TEMPLATES ---
+        
+        const t_oneStepLeap = (p) => {
+            return (svg, t) => {
+                let p1 = getP(t, 0), p2 = getP(t, 1);
+                let startX = 320, endX = 540;
+                let cx = startX + (endX - startX) * p1;
+                let cy = 100 + 95 * p1 - Math.sin(p1 * Math.PI) * 80;
+                let moveColor = p.isAdd ? "#f87171" : "#34d399";
+                let movingText = cx > 400 ? (p.isAdd ? `- ${p.startVal}` : `+ ${p.startVal}`) : `${p.startSign} ${p.startVal}`;
+
+                let op1 = 1 - p1 * 0.5; // Dims step 1
+                let op2 = p1 * (1 - p2 * 0.5); // Fades step 2, then dims
+                let op3 = p2; // Fades step 3
+
+                return `
+                    <!-- Step 1 (y=100) -->
+                    <g opacity="${op1}">
+                        <text x="240" y="100" class="svg-board-text">${p.v}</text>
+                        <text x="320" y="100" class="svg-board-text" fill="${moveColor}">${p.startSign} ${p.startVal}</text>
+                        <text x="400" y="100" class="svg-board-text">=</text>
+                        <text x="480" y="100" class="svg-board-text">${p.rVal}</text>
+                    </g>
+                    <!-- Step 2 (y=195) -->
+                    <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                        <g opacity="${p1}">
+                            <path d="M 330 120 C 330 185, 480 185, 520 205" fill="none" stroke="${moveColor}" stroke-width="3" stroke-dasharray="5" />
+                            <text x="240" y="195" class="svg-board-text">${p.v}</text>
+                            <text x="400" y="195" class="svg-board-text">=</text>
+                            <text x="480" y="195" class="svg-board-text">${p.rVal}</text>
+                        </g>
+                        <text x="${cx}" y="${cy}" class="svg-board-text" fill="${moveColor}">${movingText}</text>
+                    </g>
+                    <!-- Step 3 (y=300) -->
+                    <g opacity="${op3}">
+                        <line x1="200" y1="250" x2="600" y2="250" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                        <text x="300" y="300" class="svg-board-text">${p.v}</text>
+                        <text x="400" y="300" class="svg-board-text">=</text>
+                        <text x="480" y="300" class="svg-board-text" fill="#60a5fa">${p.finalVal}</text>
+                    </g>
+                `;
+            };
+        };
+
+        const t_oneStepMultDiv = (p) => {
+            return (svg, t) => {
+                let p1 = getP(t, 0), p2 = getP(t, 1);
+                let startX = p.isMult ? 310 : 320, endX = p.isMult ? 480 : 540; 
+                let cx = startX + (endX - startX) * p1;
+                let cy = p.isMult ? 100 + 115 * p1 - Math.sin(p1 * Math.PI) * 50 : 130 + 65 * p1 - Math.sin(p1 * Math.PI) * 40;  
+                let color = p.isMult ? "#f87171" : "#34d399";
+                let moveText = p.isMult ? p.coeff : (cx > 400 ? `• ${p.coeff}` : p.coeff);
+                let setupLeft = p.isMult ? 
+                    `<text x="310" y="100" class="svg-board-text" fill="${color}">${p.coeff}</text><text x="350" y="100" class="svg-board-text">${p.v}</text>` :
+                    `<text x="320" y="80" class="svg-board-text">${p.v}</text><line x1="290" y1="100" x2="350" y2="100" stroke="var(--board-text)" stroke-width="3"/><text x="320" y="130" class="svg-board-text" fill="${color}">${p.coeff}</text>`;
+                let rValY = p.isMult ? 195 - 20 * p1 : 195;
+                
+                let op1 = 1 - p1 * 0.5;
+                let op3 = p2;
+
+                return `
+                    <!-- Step 1 (y=100) -->
+                    <g opacity="${op1}">
+                        ${setupLeft}
+                        <text x="400" y="100" class="svg-board-text">=</text>
+                        <text x="480" y="100" class="svg-board-text">${p.rVal}</text>
+                    </g>
+                    <!-- Step 2 (y=195) -->
+                    <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                        <g opacity="${p1}">
+                            <path d="M ${startX} ${p.isMult ? 120 : 140} C ${startX} 180, 440 180, ${p.isMult ? 460 : 510} ${p.isMult ? 210 : 180}" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="5" />
+                            <text x="${p.isMult?350:320}" y="195" class="svg-board-text">${p.v}</text>
+                            <text x="400" y="195" class="svg-board-text">=</text>
+                            <text x="480" y="${rValY}" class="svg-board-text">${p.rVal}</text>
+                            ${p.isMult ? `<line x1="450" y1="195" x2="510" y2="195" stroke="var(--board-text)" stroke-width="3" />` : ''}
+                        </g>
+                        <text x="${cx}" y="${cy}" class="svg-board-text" fill="${color}">${moveText}</text>
+                    </g>
+                    <!-- Step 3 (y=300) -->
+                    <g opacity="${op3}">
+                        <line x1="200" y1="250" x2="600" y2="250" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                        <text x="300" y="300" class="svg-board-text">${p.v}</text>
+                        <text x="400" y="300" class="svg-board-text">=</text>
+                        <text x="480" y="300" class="svg-board-text" fill="#60a5fa">${p.finalVal}</text>
+                    </g>
+                `;
+            }
+        };
+
+        const t_twoStep = (p) => {
+            return (svg, t) => {
+                let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2);
+                let cx1 = 310 + (540 - 310) * p1;
+                let cy1 = 70 + 90 * p1 - Math.sin(p1 * Math.PI) * 70;
+                let isAdd = p.moveSign === '+';
+                let mText1 = cx1 > 400 ? (isAdd ? `- ${p.moveVal}` : `+ ${p.moveVal}`) : `${p.moveSign} ${p.moveVal}`;
+                let color1 = isAdd ? "#f87171" : "#34d399";
+                
+                // Destination target for coefficient division drops directly under the step 3 fraction bar (y=285)
+                let cx2 = 220 + (490 - 220) * p2;
+                let cy2 = 160 + 125 * p2 - Math.sin(p2 * Math.PI) * 50; 
+                let v = p.v || 'x';
+
+                let op1 = 1 - p1 * 0.5;
+                let op4 = p3;
+
+                return `
+                    <!-- Step 1 (y=70) -->
+                    <g opacity="${op1}">
+                        <text x="220" y="70" class="svg-board-text">${p.coeff}${v}</text>
+                        <text x="310" y="70" class="svg-board-text" fill="${color1}">${p.moveSign} ${p.moveVal}</text>
+                        <text x="400" y="70" class="svg-board-text">=</text>
+                        <text x="490" y="70" class="svg-board-text">${p.rightVal}</text>
+                    </g>
+                    <!-- Step 2 (y=160) -->
+                    <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                        <g opacity="${p1}">
+                            <text x="220" y="160" class="svg-board-text">${p.coeff}${v}</text>
+                            <text x="400" y="160" class="svg-board-text">=</text>
+                            ${p1 < 1 ? `<text x="490" y="160" class="svg-board-text">${p.rightVal}</text>` : `<text x="490" y="160" class="svg-board-text" fill="#34d399">${p.step1Val}</text>`}
+                        </g>
+                        ${p1 < 1 ? `<text x="${cx1}" y="${cy1}" class="svg-board-text" fill="${color1}">${mText1}</text>` : ''}
+                        ${p2 > 0 && p2 < 1 ? `<text x="${cx2}" y="${cy2}" class="svg-board-text" fill="#60a5fa">${p.coeff}</text>` : ''}
+                    </g>
+                    <!-- Step 3 (y=250) -->
+                    <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                        <g opacity="${p2}">
+                            <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="250" class="svg-board-text">${v}</text>
+                            <text x="400" y="250" class="svg-board-text">=</text>
+                            ${p3 < 1 ? `
+                                <text x="490" y="235" class="svg-board-text">${p.step1Val}</text>
+                                <line x1="450" y1="250" x2="530" y2="250" stroke="var(--board-text)" stroke-width="3" />
+                                ${p2 === 1 ? `<text x="490" y="285" class="svg-board-text" fill="#60a5fa">${p.coeff}</text>` : ''}
+                            ` : `
+                                <text x="490" y="250" class="svg-board-text" fill="#60a5fa">${p.finalVal}</text>
+                            `}
+                        </g>
+                    </g>
+                    <!-- Step 4 (y=340) -->
+                    <g opacity="${op4}">
+                        <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                        <text x="300" y="340" class="svg-board-text">${v}</text>
+                        <text x="400" y="340" class="svg-board-text">=</text>
+                        <text x="490" y="340" class="svg-board-text" fill="#60a5fa">${p.finalVal}</text>
+                    </g>
+                `;
+            };
+        };
+
+        const nodes = [
+            { 
+                id: 'n1a', x: 50, y: 80, diff: 1, title: 'Addition', label: 'x + 🟩 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(2, 12), a = rnd(2, 15);
+                    return { v: 'x', startSign: '+', startVal: a, rVal: a + ans, finalVal: ans, isAdd: true };
+                },
+                tips: (p) => [`Start with x + ${p.startVal} = ${p.rVal}.`, `Subtract ${p.startVal} across the equals sign.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_oneStepLeap(p)(svg, t) 
+            },
+            { 
+                id: 'n1b', x: 150, y: 80, diff: 1, title: 'Subtraction', label: 'x - 🟩 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(5, 18), a = rnd(2, 12);
+                    return { v: 'x', startSign: '-', startVal: a, rVal: ans - a, finalVal: ans, isAdd: false };
+                },
+                tips: (p) => [`Start with x - ${p.startVal} = ${p.rVal}.`, `Add ${p.startVal} across the equals sign.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_oneStepLeap(p)(svg, t) 
+            },
+            { 
+                id: 'n2a', x: 250, y: 80, diff: 1, title: 'Multiplication', label: '🟧x = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let a = rnd(2, 9), ans = rnd(3, 11);
+                    return { coeff: a, v: 'x', rVal: a * ans, finalVal: ans, isMult: true };
+                },
+                tips: (p) => [`Start with ${p.coeff}x = ${p.rVal}.`, `Divide both sides by the coefficient ${p.coeff}.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_oneStepMultDiv(p)(svg, t) 
+            },
+            { 
+                id: 'n2b', x: 350, y: 80, diff: 1, title: 'Division', label: 'x / 🟧 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let a = rnd(2, 8), ans = rnd(3, 10);
+                    return { coeff: a, v: 'x', rVal: ans, finalVal: a * ans, isMult: false };
+                },
+                tips: (p) => [`Start with x / ${p.coeff} = ${p.rVal}.`, `Multiply both sides by the denominator ${p.coeff}.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_oneStepMultDiv(p)(svg, t) 
+            },
+            { 
+                id: 'n3', x: 120, y: 190, diff: 1, title: 'Two-Step (+)', label: '🟧x + 🟩 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(2, 9), a = rnd(2, 7), b = rnd(2, 15);
+                    return { coeff: a, moveSign: '+', moveVal: b, rightVal: (a*ans)+b, step1Val: a*ans, finalVal: ans, v: 'x' };
+                },
+                tips: (p) => [`Equation: ${p.coeff}x + ${p.moveVal} = ${p.rightVal}.`, `Subtract ${p.moveVal} from both sides: ${p.coeff}x = ${p.step1Val}.`, `Divide by ${p.coeff} to isolate x.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_twoStep(p)(svg, t) 
+            },
+            { 
+                id: 'n4', x: 280, y: 190, diff: 1, title: 'Two-Step (-)', label: '🟧x - 🟩 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(2, 9), a = rnd(2, 7), b = rnd(2, 15);
+                    return { coeff: a, moveSign: '-', moveVal: b, rightVal: (a*ans)-b, step1Val: a*ans, finalVal: ans, v: 'x' };
+                },
+                tips: (p) => [`Equation: ${p.coeff}x - ${p.moveVal} = ${p.rightVal}.`, `Add ${p.moveVal} to both sides: ${p.coeff}x = ${p.step1Val}.`, `Divide by ${p.coeff} to isolate x.`, `Result: x = ${p.finalVal}.`], 
+                render: (svg, t, p) => t_twoStep(p)(svg, t) 
+            },
+            { 
+                id: 'n5', x: 200, y: 300, diff: 2, title: 'Combine Terms', label: '🟧x + 🟩x = 🔵', mod: 'A.APR.1',
+                generate: () => {
+                    let a = rnd(5, 9), b = rnd(1, 4), ans = rnd(2, 8);
+                    let coeff = a + b, target = coeff * ans;
+                    return { a, b, coeff, target, ans };
+                },
+                tips: (p) => [`Equation: ${p.a}x + ${p.b}x = ${p.target}.`, `Combine like terms: ${p.a}x + ${p.b}x = ${p.coeff}x.`, `Result: ${p.coeff}x = ${p.target}.`, `Divide to isolate x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2);
+                    let lX = 190 + 40 * p1, rX = 300 - 40 * p1;
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p3;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="190" y="70" class="svg-board-text" fill="#60a5fa">${p.a}x</text>
+                            <text x="250" y="70" class="svg-board-text">+</text>
+                            <text x="300" y="70" class="svg-board-text" fill="#60a5fa">${p.b}x</text>
+                            <text x="400" y="70" class="svg-board-text">=</text>
+                            <text x="490" y="70" class="svg-board-text">${p.target}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="400" y="160" class="svg-board-text">=</text>
+                                <text x="490" y="160" class="svg-board-text">${p.target}</text>
+                            </g>
+                            <text x="${lX}" y="160" class="svg-board-text" fill="#34d399">${p.a}x</text>
+                            <text x="${rX}" y="160" class="svg-board-text" fill="#34d399">+ ${p.b}x</text>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                <text x="240" y="250" class="svg-board-text" fill="#34d399">${p.coeff}x</text>
+                                <text x="400" y="250" class="svg-board-text">=</text>
+                                <text x="490" y="250" class="svg-board-text">${p.target}</text>
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="400" y="340" class="svg-board-text">=</text>
+                            <text x="490" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n6', x: 200, y: 410, diff: 2, title: 'Vars Both Sides', label: '🟧x = 🔺x + 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(2, 8), a = rnd(5, 9), c = rnd(1, 4);
+                    let target = (a - c) * ans;
+                    return { a, c, target, finalVal: ans, coeff: a-c };
+                },
+                tips: (p) => [`Eq: ${p.a}x = ${p.c}x + ${p.target}.`, `Drag smaller variable ${p.c}x leftward across equals.`, `Result: ${p.coeff}x = ${p.target}.`, `Divide to isolate x = ${p.finalVal}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2); 
+                    let cx = 490 - (490-250)*p1;
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p3;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="200" y="70" class="svg-board-text">${p.a}x</text>
+                            <text x="400" y="70" class="svg-board-text">=</text>
+                            <text x="490" y="70" class="svg-board-text" fill="#f87171">${p.c}x</text>
+                            <text x="570" y="70" class="svg-board-text">+</text>
+                            <text x="630" y="70" class="svg-board-text">${p.target}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="180" y="160" class="svg-board-text">${p.a}x</text>
+                                <text x="400" y="160" class="svg-board-text">=</text>
+                                <text x="490" y="160" class="svg-board-text">${p.target}</text>
+                            </g>
+                            <text x="${cx}" y="160" class="svg-board-text" fill="#f87171">${cx<400?`- ${p.c}x`:`${p.c}x`}</text>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                <text x="240" y="250" class="svg-board-text" fill="#34d399">${p.coeff}x</text>
+                                <text x="400" y="250" class="svg-board-text">=</text>
+                                <text x="490" y="250" class="svg-board-text">${p.target}</text>
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="400" y="340" class="svg-board-text">=</text>
+                            <text x="490" y="340" class="svg-board-text" fill="#60a5fa">${p.finalVal}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n7', x: 200, y: 520, diff: 2, title: 'Full Vars Both Sides', label: '🟧x + 🟩 = 🔺x + 🟪', mod: 'A.REI.3',
+                generate: () => {
+                    let ans = rnd(2, 6), a = rnd(4, 7), c = rnd(1, 3);
+                    let b = rnd(2, 10);
+                    let d = (a - c) * ans + b;
+                    return { a, b, c, d, ans, xCoef: a-c, num: d-b };
+                },
+                tips: (p) => [`Eq: ${p.a}x + ${p.b} = ${p.c}x + ${p.d}.`, `Group variables left: ${p.a}x - ${p.c}x.`, `Group constants right: ${p.d} - ${p.b}.`, `Result: ${p.xCoef}x = ${p.num} => x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2);
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p3;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="220" y="70" class="svg-board-text">${p.a}x + ${p.b}</text>
+                            <text x="400" y="70" class="svg-board-text">=</text>
+                            <text x="520" y="70" class="svg-board-text">${p.c}x + ${p.d}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="240" y="160" class="svg-board-text">${p.a}x - ${p.c}x</text>
+                                <text x="400" y="160" class="svg-board-text">=</text>
+                                <text x="540" y="160" class="svg-board-text">${p.d} - ${p.b}</text>
+                            </g>
+                        </g>
+                        <!-- Step 3 (Collapsing format transition) -->
+                        <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                <text x="260" y="250" class="svg-board-text" fill="#34d399">${p.xCoef}x</text>
+                                <text x="400" y="250" class="svg-board-text">=</text>
+                                <text x="520" y="250" class="svg-board-text" fill="#34d399">${p.num}</text>
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="400" y="340" class="svg-board-text">=</text>
+                            <text x="520" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n8', x: 100, y: 630, diff: 2, title: 'Distribute (+)', label: '🟧(x + 🟩) = 🔵', mod: 'A.SSE.1',
+                generate: () => {
+                    let ans = rnd(2, 6), a = rnd(2, 5), b = rnd(2, 8);
+                    return { a, b, target: a*(ans+b), ans, step1: a*ans, step2: a*b };
+                },
+                tips: (p) => [`Eq: ${p.a}(x + ${p.b}) = ${p.target}.`, `Rainbow arrows multiply ${p.a} to both inner terms.`, `Expanded: ${p.a}x + ${p.step2} = ${p.target}.`, `Solve down to x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2), p4 = getP(t, 3); 
+                    let r1 = 200 - p1 * 200, r2 = 300 - p1 * 300;
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p4;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="200" y="70" class="svg-board-text" fill="#34d399">${p.a}</text>
+                            <text x="240" y="70" class="svg-board-text">(</text>
+                            <text x="280" y="70" class="svg-board-text">x</text>
+                            <text x="330" y="70" class="svg-board-text" fill="#60a5fa">+ ${p.b}</text>
+                            <text x="380" y="70" class="svg-board-text">)</text>
+                            <text x="420" y="70" class="svg-board-text">=</text>
+                            <text x="490" y="70" class="svg-board-text">${p.target}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="200" y="160" class="svg-board-text" fill="#34d399">(${p.a}•x)</text>
+                                <text x="280" y="160" class="svg-board-text">+</text>
+                                <text x="360" y="160" class="svg-board-text" fill="#60a5fa">(${p.a}•${p.b})</text>
+                                <text x="430" y="160" class="svg-board-text">=</text>
+                                <text x="490" y="160" class="svg-board-text">${p.target}</text>
+                            </g>
+                            <path d="M 200 35 C 210 -5, 260 -5, 280 40" fill="none" stroke="#34d399" stroke-width="3" stroke-dasharray="200" stroke-dashoffset="${r1}" marker-end="url(#arrow)" />
+                            <path d="M 200 35 C 240 -25, 320 -25, 340 40" fill="none" stroke="#34d399" stroke-width="3" stroke-dasharray="300" stroke-dashoffset="${r2}" marker-end="url(#arrow)" />
+                        </g>
+                        <!-- Step 3 (Collapses from expanded to simplified two-step dynamically) -->
+                        <g opacity="${p2 > 0 ? (1 - p4 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                ${p3<1 ? `<text x="260" y="250" class="svg-board-text">${p.a}x + ${p.step2}</text><text x="430" y="250" class="svg-board-text">=</text><text x="490" y="250" class="svg-board-text">${p.target}</text>` : `<text x="260" y="250" class="svg-board-text">${p.a}x</text><text x="430" y="250" class="svg-board-text">=</text><text x="490" y="250" class="svg-board-text" fill="#34d399">${p.step1}</text>`}
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="430" y="340" class="svg-board-text">=</text>
+                            <text x="490" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n9', x: 300, y: 630, diff: 3, title: 'Fraction Busters', label: 'x/🟧 + x/🟩 = 🔵', mod: 'A.REI.3',
+                generate: () => {
+                    let a = 2, b = 3, lcm = 6, ans = rnd(1,5)*6; 
+                    return { a, b, lcm, c: (ans/a)+(ans/b), ans };
+                },
+                tips: (p) => [`Eq: x/${p.a} + x/${p.b} = ${p.c}.`, `Multiply entire equation by LCM ${p.lcm}.`, `Busted: ${p.lcm/p.a}x + ${p.lcm/p.b}x = ${p.lcm*p.c}.`, `Result: ${(p.lcm/p.a)+(p.lcm/p.b)}x = ${p.lcm*p.c} => x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2);
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p3;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="240" y="70" class="svg-board-text">x/${p.a}</text>
+                            <text x="320" y="70" class="svg-board-text">+</text>
+                            <text x="400" y="70" class="svg-board-text">x/${p.b}</text>
+                            <text x="480" y="70" class="svg-board-text">=</text>
+                            <text x="540" y="70" class="svg-board-text">${p.c}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="180" y="160" class="svg-marker-text">(${p.lcm})</text>
+                                <text x="240" y="160" class="svg-board-text">x/${p.a}</text>
+                                <text x="340" y="160" class="svg-marker-text">(${p.lcm})</text>
+                                <text x="400" y="160" class="svg-board-text">x/${p.b}</text>
+                                <text x="480" y="160" class="svg-marker-text">(${p.lcm})</text>
+                                <text x="540" y="160" class="svg-board-text">${p.c}</text>
+                            </g>
+                        </g>
+                        <!-- Step 3 (Collapsing transition) -->
+                        <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                ${p3 < 1 ? `
+                                    <text x="320" y="250" class="svg-board-text">${p.lcm/p.a}x + ${p.lcm/p.b}x</text>
+                                ` : `
+                                    <text x="320" y="250" class="svg-board-text" fill="#34d399">${(p.lcm/p.a)+(p.lcm/p.b)}x</text>
+                                `}
+                                <text x="450" y="250" class="svg-board-text">=</text>
+                                <text x="540" y="250" class="svg-board-text">${p.lcm*p.c}</text>
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="450" y="340" class="svg-board-text">=</text>
+                            <text x="540" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n10', x: 100, y: 740, diff: 3, title: 'Distribute (-)', label: '-🟧(x - 🟩) = 🔵', mod: 'A.SSE.1',
+                generate: () => {
+                    let ans = rnd(-6, -2), a = rnd(2, 5), b = rnd(2, 6);
+                    return { a: -a, b, target: -a*(ans-b), ans, step1: -a*ans, step2: a*b };
+                },
+                tips: (p) => [`Eq: ${p.a}(x - ${p.b}) = ${p.target}.`, `Rainbow multiply ${p.a}. Neg * Neg makes +${p.step2}.`, `Expanded: ${p.a}x + ${p.step2} = ${p.target}.`, `Solve down to x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2), p4 = getP(t, 3); 
+                    let r1 = 200 - p1 * 200, r2 = 300 - p1 * 300;
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p4;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="200" y="70" class="svg-board-text" fill="#f87171">${p.a}</text>
+                            <text x="240" y="70" class="svg-board-text">(</text>
+                            <text x="280" y="70" class="svg-board-text">x</text>
+                            <text x="330" y="70" class="svg-board-text" fill="#60a5fa">- ${p.b}</text>
+                            <text x="380" y="70" class="svg-board-text">)</text>
+                            <text x="420" y="70" class="svg-board-text">=</text>
+                            <text x="490" y="70" class="svg-board-text">${p.target}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="200" y="160" class="svg-board-text" fill="#f87171">(${p.a}•x)</text>
+                                <text x="280" y="160" class="svg-board-text">+</text>
+                                <text x="360" y="160" class="svg-board-text" fill="#60a5fa">(${Math.abs(p.a)}•${p.b})</text>
+                                <text x="430" y="160" class="svg-board-text">=</text>
+                                <text x="490" y="160" class="svg-board-text">${p.target}</text>
+                            </g>
+                            <path d="M 200 35 C 210 -5, 260 -5, 280 40" fill="none" stroke="#f87171" stroke-width="3" stroke-dasharray="200" stroke-dashoffset="${r1}" marker-end="url(#arrow-crimson)" />
+                            <path d="M 200 35 C 240 -25, 320 -25, 340 40" fill="none" stroke="#f87171" stroke-width="3" stroke-dasharray="300" stroke-dashoffset="${r2}" marker-end="url(#arrow-crimson)" />
+                        </g>
+                        <!-- Step 3 (Collapsing transition) -->
+                        <g opacity="${p2 > 0 ? (1 - p4 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                ${p3<1 ? `<text x="260" y="250" class="svg-board-text">${p.a}x + ${p.step2}</text><text x="430" y="250" class="svg-board-text">=</text><text x="490" y="250" class="svg-board-text">${p.target}</text>` : `<text x="260" y="250" class="svg-board-text">${p.a}x</text><text x="430" y="250" class="svg-board-text">=</text><text x="490" y="250" class="svg-board-text" fill="#34d399">${p.step1}</text>`}
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="430" y="340" class="svg-board-text">=</text>
+                            <text x="490" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n11', x: 300, y: 740, diff: 2, title: 'Proportions', label: 'x/🟧 = 🟩/🔺', mod: 'A.REI.3',
+                generate: () => {
+                    let a = rnd(2, 5), denom1 = rnd(2, 5), denom2 = rnd(2, 6);
+                    return { denom1, denom2, ans: a * denom1, num2: a * denom2 };
+                },
+                tips: (p) => [`Eq: x / ${p.denom1} = ${p.num2} / ${p.denom2}.`, `Cross multiply diagonals...`, `Result: ${p.denom2}x = ${p.num2 * p.denom1}.`, `Divide to isolate: x = ${p.ans}.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1), p3 = getP(t, 2);
+                    let op1 = 1 - p1 * 0.5;
+                    let op4 = p3;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="280" y="55" class="svg-board-text">x</text><line x1="260" y1="70" x2="300" y2="70" stroke="var(--board-text)" stroke-width="3"/><text x="280" y="95" class="svg-board-text" fill="#f87171">${p.denom1}</text>
+                            <text x="400" y="70" class="svg-board-text">=</text>
+                            <text x="520" y="55" class="svg-board-text" fill="#34d399">${p.num2}</text><line x1="500" y1="70" x2="540" y2="70" stroke="var(--board-text)" stroke-width="3"/><text x="520" y="95" class="svg-board-text">${p.denom2}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="260" y="160" class="svg-board-text">${p.denom2}x</text>
+                                <text x="400" y="160" class="svg-board-text">=</text>
+                                <text x="540" y="160" class="svg-board-text">${p.denom1}(${p.num2})</text>
+                            </g>
+                            <path d="M 300 50 L 500 95" fill="none" stroke="#60a5fa" stroke-width="4" stroke-dasharray="8" />
+                            <path d="M 300 95 L 500 50" fill="none" stroke="#60a5fa" stroke-width="4" stroke-dasharray="8" />
+                        </g>
+                        <!-- Step 3 (Collapsing transition) -->
+                        <g opacity="${p2 > 0 ? (1 - p3 * 0.5) : 0}">
+                            <g opacity="${p2}">
+                                <line x1="150" y1="210" x2="650" y2="210" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                                <text x="280" y="250" class="svg-board-text">${p.denom2}x</text>
+                                <text x="400" y="250" class="svg-board-text">=</text>
+                                ${p3 < 1 ? `
+                                    <text x="520" y="250" class="svg-board-text">${p.denom1}(${p.num2})</text>
+                                ` : `
+                                    <text x="520" y="250" class="svg-board-text" fill="#34d399">${p.denom1 * p.num2}</text>
+                                `}
+                            </g>
+                        </g>
+                        <!-- Step 4 -->
+                        <g opacity="${op4}">
+                            <line x1="150" y1="300" x2="650" y2="300" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="300" y="340" class="svg-board-text">x</text>
+                            <text x="400" y="340" class="svg-board-text">=</text>
+                            <text x="520" y="340" class="svg-board-text" fill="#60a5fa">${p.ans}</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n12', x: 100, y: 850, diff: 3, title: 'No Solution', label: '🟧x + 🟩 = 🟧x - 🔺', mod: 'A.REI.3',
+                generate: () => {
+                    let a = rnd(2,6), b = rnd(1,5), c = rnd(6, 12);
+                    return { a, b, c };
+                },
+                tips: (p) => [`Eq: ${p.a}x + ${p.b} = ${p.a}x - ${p.c}.`, `Subtract ${p.a}x from both sides. Variables vanish!`, `Result: ${p.b} = -${p.c}. This is FALSE.`, `Answer: No Solution.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1);
+                    let op1 = 1 - p1 * 0.5;
+                    let op3 = p2;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="240" y="100" class="svg-board-text">${p.a}x + ${p.b}</text>
+                            <text x="400" y="100" class="svg-board-text">=</text>
+                            <text x="540" y="100" class="svg-board-text">${p.a}x - ${p.c}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="240" y="200" class="svg-board-text">${p.a}x + ${p.b}</text>
+                                <line x1="190" y1="215" x2="250" y2="185" stroke="#f87171" stroke-width="6"/>
+                                <text x="400" y="200" class="svg-board-text">=</text>
+                                <text x="540" y="200" class="svg-board-text">${p.a}x - ${p.c}</text>
+                                <line x1="490" y1="215" x2="550" y2="185" stroke="#f87171" stroke-width="6"/>
+                            </g>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${op3}">
+                            <line x1="150" y1="250" x2="650" y2="250" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="320" y="300" class="svg-board-text">${p.b} ≠ -${p.c}</text>
+                            <text x="520" y="300" class="svg-marker-text" fill="#f87171">FALSE!</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n13', x: 300, y: 850, diff: 3, title: 'Infinite Solutions', label: '🟧x + 🟩 = 🟧x + 🟩', mod: 'A.REI.3',
+                generate: () => {
+                    let a = rnd(2,9), b = rnd(2,15);
+                    return { a, b };
+                },
+                tips: (p) => [`Eq: ${p.a}x + ${p.b} = ${p.a}x + ${p.b}.`, `Subtract ${p.a}x from both sides. Variables vanish!`, `Result: ${p.b} = ${p.b}. This is ALWAYS TRUE.`, `Answer: Infinite Solutions.`], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1);
+                    let op1 = 1 - p1 * 0.5;
+                    let op3 = p2;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="240" y="100" class="svg-board-text">${p.a}x + ${p.b}</text>
+                            <text x="400" y="100" class="svg-board-text">=</text>
+                            <text x="540" y="100" class="svg-board-text">${p.a}x + ${p.b}</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="240" y="200" class="svg-board-text">${p.a}x + ${p.b}</text>
+                                <line x1="190" y1="215" x2="250" y2="185" stroke="#f87171" stroke-width="6"/>
+                                <text x="400" y="200" class="svg-board-text">=</text>
+                                <text x="540" y="200" class="svg-board-text">${p.a}x + ${p.b}</text>
+                                <line x1="490" y1="215" x2="550" y2="185" stroke="#f87171" stroke-width="6"/>
+                            </g>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${op3}">
+                            <line x1="150" y1="250" x2="650" y2="250" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="320" y="300" class="svg-board-text">${p.b} = ${p.b}</text>
+                            <text x="520" y="300" class="svg-marker-text" fill="#34d399">ALWAYS TRUE</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n14', x: 150, y: 960, diff: 3, title: 'Literal Formula', label: 'd = r • t', mod: 'A.CED.4',
+                generate: () => ({}),
+                tips: (p) => ["Formula: d = rt. Solve for t.", "Drag coefficient r under d as division.", "Result: d / r = t."], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1); 
+                    let cx = 460 - 140 * p1, cy = 100 + 130 * p1 - Math.sin(p1 * Math.PI) * 50; 
+                    let dY = 195 - 20 * p1;
+                    let op1 = 1 - p1 * 0.5;
+                    let op3 = p2;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="320" y="100" class="svg-board-text">d</text>
+                            <text x="400" y="100" class="svg-board-text">=</text>
+                            <text x="460" y="100" class="svg-board-text" fill="#f87171">r</text>
+                            <text x="500" y="100" class="svg-board-text">t</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <line x1="290" y1="195" x2="350" y2="195" stroke="var(--board-text)" stroke-width="3" />
+                                <text x="400" y="195" class="svg-board-text">=</text>
+                                <text x="500" y="195" class="svg-board-text">t</text>
+                            </g>
+                            <!-- Movement happens smoothly while outside fading group -->
+                            <text x="320" y="${dY}" class="svg-board-text" opacity="${p1 > 0 ? 1 : 0}">d</text>
+                            <text x="${cx}" y="${cy}" class="svg-board-text" fill="#f87171" opacity="${p1 > 0 ? 1 : 0}">r</text>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${op3}">
+                            <line x1="150" y1="240" x2="650" y2="240" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="320" y="280" class="svg-board-text">d</text>
+                            <line x1="290" y1="295" x2="350" y2="295" stroke="var(--board-text)" stroke-width="3"/>
+                            <text x="325" y="325" class="svg-board-text" fill="#60a5fa">r</text>
+                            <text x="400" y="300" class="svg-board-text">=</text>
+                            <text x="500" y="300" class="svg-board-text">t</text>
+                        </g>
+                    `;
+                }
+            },
+            { 
+                id: 'n15', x: 250, y: 960, diff: 3, title: 'Std to Slope-Int', label: 'Ax + By = C', mod: 'A.CED.4',
+                generate: () => ({}),
+                tips: (p) => ["Formula: Ax + By = C. Solve for y.", "Move Ax to right side (-Ax).", "Divide everything by B.", "Result: y = (C - Ax)/B."], 
+                render: (svg, t, p) => {
+                    let p1 = getP(t, 0), p2 = getP(t, 1);
+                    let op1 = 1 - p1 * 0.5;
+                    let op3 = p2;
+                    return `
+                        <!-- Step 1 -->
+                        <g opacity="${op1}">
+                            <text x="240" y="80" class="svg-board-text">Ax + By</text>
+                            <text x="400" y="80" class="svg-board-text">=</text>
+                            <text x="500" y="80" class="svg-board-text">C</text>
+                        </g>
+                        <!-- Step 2 -->
+                        <g opacity="${p1 > 0 ? (1 - p2 * 0.5) : 0}">
+                            <g opacity="${p1}">
+                                <text x="240" y="180" class="svg-board-text">By</text>
+                                <text x="400" y="180" class="svg-board-text">=</text>
+                                <text x="540" y="180" class="svg-board-text">C - Ax</text>
+                            </g>
+                        </g>
+                        <!-- Step 3 -->
+                        <g opacity="${op3}">
+                            <line x1="150" y1="240" x2="650" y2="240" stroke="#334155" stroke-dasharray="3" stroke-width="2" />
+                            <text x="240" y="300" class="svg-board-text">y</text>
+                            <text x="400" y="300" class="svg-board-text">=</text>
+                            <text x="540" y="280" class="svg-board-text">C - Ax</text>
+                            <line x1="470" y1="300" x2="610" y2="300" stroke="var(--board-text)" stroke-width="3"/>
+                            <text x="540" y="325" class="svg-board-text" fill="#60a5fa">B</text>
+                        </g>
+                    `;
+                }
+            }
+        ];
+
+        const links = [
+            ['n1a', 'n3'], ['n2a', 'n3'],
+            ['n1b', 'n4'], ['n2b', 'n4'],
+            ['n3', 'n5'], ['n4', 'n5'],
+            ['n5', 'n6'], ['n6', 'n7'],
+            ['n7', 'n8'], ['n7', 'n9'],
+            ['n8', 'n10'], ['n9', 'n11'],
+            ['n10', 'n12'], ['n10', 'n13'],
+            ['n11', 'n12'], ['n11', 'n13'],
+            ['n12', 'n14'], ['n13', 'n14'],
+            ['n14', 'n15']
+        ];
+
+        let selectedNodeId = null;
+        let autoplayInterval = null;
+        let isPlaying = false;
+
+        // --- RENDER THE WEB ---
+        function drawWeb() {
+            const svg = document.getElementById('web-svg');
+            let content = '';
+
+            links.forEach(l => {
+                const source = nodes.find(n => n.id === l[0]);
+                const target = nodes.find(n => n.id === l[1]);
+                if(source && target) {
+                    content += `<line x1="${source.x}" y1="${source.y}" x2="${target.x}" y2="${target.y}" class="web-link" id="link-${l[0]}-${l[1]}"></line>`;
+                }
+            });
+
+            nodes.forEach(n => {
+                let color = n.diff === 1 ? 'var(--node-support)' : (n.diff === 2 ? 'var(--node-fluency)' : 'var(--node-rigor)');
+                content += `
+                    <g class="web-node-group" id="group-${n.id}" onclick="selectNode('${n.id}')">
+                        <circle cx="${n.x}" cy="${n.y}" r="28" class="web-node" fill="${color}"></circle>
+                        <text x="${n.x}" y="${n.y + 45}" class="web-node-title">${n.title}</text>
+                        <text x="${n.x}" y="${n.y + 60}" class="web-node-label">${n.label}</text>
+                    </g>
+                `;
+            });
+
+            svg.innerHTML = content;
+        }
+
+        function selectNode(id) {
+            selectedNodeId = id;
+            const node = nodes.find(n => n.id === id);
+            
+            document.querySelectorAll('.web-node-group').forEach(g => g.classList.remove('active'));
+            document.getElementById(`group-${id}`).classList.add('active');
+
+            activeParams = node.generate();
+
+            document.getElementById('stage-title').innerText = node.title;
+            document.getElementById('stage-module').innerText = `Ohio Standard: ${node.mod}`;
+
+            const dynamicTips = node.tips(activeParams);
+            const stepsCount = dynamicTips.length;
+            const scrubber = document.getElementById('scrubber');
+            scrubber.max = stepsCount - 1;
+            scrubber.value = 0;
+
+            const labelsContainer = document.getElementById('step-indicators');
+            labelsContainer.innerHTML = '';
+            dynamicTips.forEach((tip, i) => {
+                let div = document.createElement('div');
+                div.className = 'step-label';
+                div.id = 'label-' + i;
+                div.innerText = `Step ${i+1}`;
+                labelsContainer.appendChild(div);
+            });
+
+            scrubUpdate();
+        }
+        
+        function regenerateCurrentNode() {
+            if(selectedNodeId) selectNode(selectedNodeId);
+        }
+
+        function scrubUpdate() {
+            if(!selectedNodeId || !activeParams) return;
+            const val = parseFloat(document.getElementById('scrubber').value);
+            const node = nodes.find(n => n.id === selectedNodeId);
+            
+            const dynamicTips = node.tips(activeParams);
+            const maxStep = dynamicTips.length - 1;
+            
+            let currentTipIdx = Math.floor(val);
+            if (currentTipIdx > maxStep) currentTipIdx = maxStep;
+            document.getElementById('explanation-text').innerText = dynamicTips[currentTipIdx];
+
+            for(let i = 0; i <= maxStep; i++) {
+                let el = document.getElementById('label-' + i);
+                if(el) { el.classList.toggle('active', Math.abs(val - i) < 0.5); }
+            }
+
+            const svg = document.getElementById('math-svg');
+            svg.innerHTML = node.render(svg, val, activeParams);
+        }
+
+        function togglePlay() {
+            if(!selectedNodeId) return;
+            const playBtn = document.getElementById('play-trigger');
+            const scrubber = document.getElementById('scrubber');
+            const maxVal = parseFloat(scrubber.max);
+
+            if (isPlaying) {
+                clearInterval(autoplayInterval);
+                playBtn.innerText = "▶";
+                isPlaying = false;
+            } else {
+                playBtn.innerText = "⏸";
+                isPlaying = true;
+                if (parseFloat(scrubber.value) >= maxVal) scrubber.value = 0;
+
+                autoplayInterval = setInterval(() => {
+                    let val = parseFloat(scrubber.value) + 0.02;
+                    if (val >= maxVal) {
+                        val = maxVal;
+                        clearInterval(autoplayInterval);
+                        playBtn.innerText = "▶";
+                        isPlaying = false;
+                    }
+                    scrubber.value = val;
+                    scrubUpdate();
+                }, 25);
+            }
+        }
+
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+        window.onload = () => {
+            drawWeb();
+            selectNode('n1a'); // Starts with basic Addition!
+        };
+    </script>
+</body>
+</html>
